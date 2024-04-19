@@ -1,35 +1,42 @@
+import multiprocessing
 import os
 import sys
 import time
 from pathlib import Path
-from threading import Thread
-
-from client.network import ClientConnection
-from server.network import ServerConnection
 
 source_dir = Path(os.path.dirname(__file__)).parent
 sys.path.append(str(source_dir) + "/.")
 
+from client.network import ClientConnection
+from server.network import ServerConnection
 
-def main():
-    # Start the server
+def run_server():
     server = ServerConnection()
-    server_thread = Thread(target=server.start_listening)
-    server_thread.start()
+    server.start_listening()
 
-    # Allow some time for the server to start listening
-    time.sleep(1)
 
-    # Connect the client to the server
+def run_client():
     client = ClientConnection()
-    message = "Hello, server!"
+
+    client.start_connection()
+
+    message = "Hello Server!"
     client.send_message(message)
 
-    # Close the client connection
+    time.sleep(1)
     client.close_connection()
 
-    # Stop the server
-    server.stop_server()
+
+def main():
+    pserver = multiprocessing.Process(target=run_server)
+    pserver.start()
+
+    time.sleep(1)
+    run_client()
+    time.sleep(1)
+
+    pserver.kill()
+    pserver.join()
 
 
 if __name__ == "__main__":
