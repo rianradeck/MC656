@@ -5,11 +5,12 @@ import sys
 
 
 class ClientConnection:
-    def __init__(
-        self, server_host: str = "127.0.0.1", server_port: int = 12345
-    ):
+    def __init__(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+    def start_connection(
+        self, server_host: str = "127.0.0.1", server_port: int = 12345
+    ):
         self.socket.connect((server_host, server_port))
 
     def send_message(self, message: str) -> bool:
@@ -40,6 +41,8 @@ if __name__ == "__main__":
         message = ""
 
     client = ClientConnection()
+    client.start_connection()
+
     while True:
         try:
             if message:
