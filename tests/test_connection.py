@@ -22,7 +22,7 @@ def run_client():
     client.close_connection()
 
 
-def main():
+def test_connection():
     pserver = multiprocessing.Process(target=run_server)
     pserver.start()
 
@@ -32,7 +32,3 @@ def main():
 
     pserver.kill()
     pserver.join()
-
-
-if __name__ == "__main__":
-    main()
