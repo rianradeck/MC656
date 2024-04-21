@@ -1,14 +1,9 @@
 import multiprocessing
-import os
-import sys
 import time
-from pathlib import Path
-
-source_dir = Path(os.path.dirname(__file__)).parent
-sys.path.append(str(source_dir) + "/.")
 
 from client.network import ClientConnection
 from server.network import ServerConnection
+
 
 def run_server():
     server = ServerConnection()
