@@ -3,28 +3,28 @@ import enum
 
 @enum.unique
 class GridObject(enum.Enum):
-    EMPTY = 0
-    WALL = 1
-    SNAKE_1 = 2
-    SNAKE_2 = 3
-    APPLE = 4
+    EMPTY = enum.auto()
+    WALL = enum.auto()
+    SNAKE_1 = enum.auto()
+    SNAKE_2 = enum.auto()
+    APPLE = enum.auto()
 
 
 class Grid:
     def __init__(self):
         self.width = 10
         self.height = 10
-        self.data = [0] * (self.width * self.height)
+        self.data = [GridObject.EMPTY] * (self.width * self.height)
 
     def serialize(self):
         assert 0 < self.width
         assert 0 < self.height
         assert self.width < 256
         assert self.height < 256
-        return bytes(self.data)
+        return bytes([x.value for x in self.data])
 
     def deserialize(self, byte_str):
-        self.data = list(map(int, byte_str))
+        self.data = list(map(GridObject, byte_str))
 
     def element_at(self, row, column):
         assert 0 <= row
@@ -44,7 +44,7 @@ class Grid:
         ret = ""
         for i in range(self.height):
             for j in range(self.width):
-                ret += str(self.element_at(i, j))
+                ret += str(self.element_at(i, j).value)
             ret += "\n"
         return ret
 
@@ -56,16 +56,19 @@ class Grid:
 
     def fill_borders(self):
         for i in range(self.width):
-            self.set_element_at(0, i, GridObject.WALL.value)
-            self.set_element_at(self.height - 1, i, GridObject.WALL.value)
+            self.set_element_at(0, i, GridObject.WALL)
+            self.set_element_at(self.height - 1, i, GridObject.WALL)
         for i in range(self.height):
-            self.set_element_at(i, 0, GridObject.WALL.value)
-            self.set_element_at(i, self.width - 1, GridObject.WALL.value)
+            self.set_element_at(i, 0, GridObject.WALL)
+            self.set_element_at(i, self.width - 1, GridObject.WALL)
 
 
 if __name__ == "__main__":
     a = Grid()
     a.fill_borders()
-    a[(2, 2)] = GridObject.SNAKE_1.value
+    a[(2, 2)] = GridObject.SNAKE_1
 
-    print(a)
+    b = Grid()
+    b.deserialize(a.serialize())
+
+    assert str(a) == str(b)
