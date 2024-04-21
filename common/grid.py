@@ -1,6 +1,7 @@
 import enum
 
 
+@enum.unique
 class GridObject(enum.Enum):
     EMPTY = 0
     WALL = 1
@@ -46,3 +47,25 @@ class Grid:
                 ret += str(self.element_at(i, j))
             ret += "\n"
         return ret
+
+    def __getitem__(self, key):
+        return self.element_at(*key)
+
+    def __setitem__(self, key, value):
+        self.set_element_at(*key, value)
+
+    def fill_borders(self):
+        for i in range(self.width):
+            self.set_element_at(0, i, GridObject.WALL.value)
+            self.set_element_at(self.height - 1, i, GridObject.WALL.value)
+        for i in range(self.height):
+            self.set_element_at(i, 0, GridObject.WALL.value)
+            self.set_element_at(i, self.width - 1, GridObject.WALL.value)
+
+
+if __name__ == "__main__":
+    a = Grid()
+    a.fill_borders()
+    a[(2, 2)] = GridObject.SNAKE_1.value
+
+    print(a)
