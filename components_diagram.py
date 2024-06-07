@@ -23,8 +23,8 @@ node_attr = {"height": "2.3", "width": "4"}
 node_attr2 = {"height": "1.9", "width": "3.5"}
 
 with Diagram(
-    "Diagrama de Componentes MC656",
-    direction="LR",
+    "\n\n\n\nDiagrama de Componentes",
+    direction="TB",
     graph_attr=graph_attr,
     outformat="png",
 ):
