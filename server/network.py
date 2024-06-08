@@ -33,7 +33,7 @@ class ServerConnection:
 
                     # Start a new thread to handle the client
                     client_thread = Thread(
-                        target=ClientHandler.handle_client,
+                        target=self.handle_client,
                         args=(client_socket, client_address),
                     )
                     client_thread.start()
@@ -42,15 +42,8 @@ class ServerConnection:
                 self.stop_server()
                 break
 
-    def stop_server(self) -> None:
-        for client_socket in self.open_client_sockets:
-            client_socket.close()
-        self.socket.close()
-
-class ClientHandler:
-
     def handle_client(
-       client_socket: socket, client_address: str
+       self, client_socket: socket, client_address: str
     ) -> None:
         print("Connection from:", client_address)
 
@@ -70,6 +63,14 @@ class ClientHandler:
         # Close the connection
         client_socket.close()
         print(f"Connection with {client_address} closed.")
+
+    def stop_server(self) -> None:
+        for client_socket in self.open_client_sockets:
+            client_socket.close()
+        self.socket.close()
+
+
+
 
 
 
