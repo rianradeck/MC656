@@ -2,22 +2,20 @@ import select
 from socket import AF_INET, SOCK_STREAM, socket
 from threading import Thread
 
-
 class ServerConnection:
     def __init__(self):
         self.open_client_sockets = []
-        self.socket = self.get_socket()
+        self.socket = None
 
-    def get_socket(self, host: str = "127.0.0.1", port: int = 12345) -> socket:
+    def start_listening(self, host: str = "127.0.0.1", port: int = 12345) -> socket:
         # Create a socket object
         server_socket = socket(AF_INET, SOCK_STREAM)
 
         # Bind the socket to the host and port
         server_socket.bind((host, port))
 
-        return server_socket
+        self.socket = server_socket
 
-    def start_listening(self) -> None:
         self.socket.listen()
         _ip, _port = self.socket.getsockname()
         print(f"Listening on {_ip}:{_port}")
@@ -35,7 +33,7 @@ class ServerConnection:
 
                     # Start a new thread to handle the client
                     client_thread = Thread(
-                        target=self.handle_client,
+                        target=ClientHandler.handle_client,
                         args=(client_socket, client_address),
                     )
                     client_thread.start()
@@ -44,8 +42,15 @@ class ServerConnection:
                 self.stop_server()
                 break
 
+    def stop_server(self) -> None:
+        for client_socket in self.open_client_sockets:
+            client_socket.close()
+        self.socket.close()
+
+class ClientHandler:
+
     def handle_client(
-        self, client_socket: socket, client_address: str
+       client_socket: socket, client_address: str
     ) -> None:
         print("Connection from:", client_address)
 
@@ -66,10 +71,6 @@ class ServerConnection:
         client_socket.close()
         print(f"Connection with {client_address} closed.")
 
-    def stop_server(self) -> None:
-        for client_socket in self.open_client_sockets:
-            client_socket.close()
-        self.socket.close()
 
 
 if __name__ == "__main__":
