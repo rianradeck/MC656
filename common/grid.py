@@ -12,7 +12,7 @@ class GridObject(enum.Enum):
 
 class Grid:
     def __init__(self):
-        self.width = 10
+        self.width = 15
         self.height = 10
         self.data = [GridObject.EMPTY] * (self.width * self.height)
 
