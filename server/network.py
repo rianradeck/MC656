@@ -2,20 +2,22 @@ import select
 from socket import AF_INET, SOCK_STREAM, socket
 from threading import Thread
 
+
 class ServerConnection:
     def __init__(self):
         self.open_client_sockets = []
-        self.socket = None
+        self.socket = self.get_socket()
 
-    def start_listening(self, host: str = "127.0.0.1", port: int = 12345) -> socket:
+    def get_socket(self, host: str = "127.0.0.1", port: int = 12345) -> socket:
         # Create a socket object
         server_socket = socket(AF_INET, SOCK_STREAM)
 
         # Bind the socket to the host and port
         server_socket.bind((host, port))
 
-        self.socket = server_socket
+        return server_socket
 
+    def start_listening(self) -> None:
         self.socket.listen()
         _ip, _port = self.socket.getsockname()
         print(f"Listening on {_ip}:{_port}")
@@ -43,7 +45,7 @@ class ServerConnection:
                 break
 
     def handle_client(
-       self, client_socket: socket, client_address: str
+        self, client_socket: socket, client_address: str
     ) -> None:
         print("Connection from:", client_address)
 
@@ -68,10 +70,6 @@ class ServerConnection:
         for client_socket in self.open_client_sockets:
             client_socket.close()
         self.socket.close()
-
-
-
-
 
 
 if __name__ == "__main__":
