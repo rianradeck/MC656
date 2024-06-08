@@ -1,4 +1,5 @@
 import enum
+from random import randint
 
 
 @enum.unique
@@ -54,16 +55,57 @@ class Grid:
     def __setitem__(self, key, value):
         self.set_element_at(*key, value)
 
+
+class GridBuilder:
+    def __init__(self):
+        self.grid = Grid()
+
     def fill_borders(self):
-        for i in range(self.width):
-            self.set_element_at(0, i, GridObject.WALL)
-            self.set_element_at(self.height - 1, i, GridObject.WALL)
-        for i in range(self.height):
-            self.set_element_at(i, 0, GridObject.WALL)
-            self.set_element_at(i, self.width - 1, GridObject.WALL)
+        for i in range(self.grid.width):
+            self.grid.set_element_at(0, i, GridObject.WALL)
+            self.grid.set_element_at(self.grid.height - 1, i, GridObject.WALL)
+        for i in range(self.grid.height):
+            self.grid.set_element_at(i, 0, GridObject.WALL)
+            self.grid.set_element_at(i, self.grid.width - 1, GridObject.WALL)
+
+    def reset(self):
+        self.grid = Grid()
+
+    def setup_players(self):
+        # TODO: Add customizable inital snake length
+        player1_snake = [(3, 1), (4, 1), (5, 1)]
+        player2_snake = [(6, 8), (5, 8), (4, 8)]
+
+        for pos in player1_snake:
+            self.grid[pos] = GridObject.SNAKE_1
+        for pos in player2_snake:
+            self.grid[pos] = GridObject.SNAKE_2
+
+    def gen_random_apple(self):
+        MAX_TRIES = 10
+        iter = 0
+
+        # OPTIMIZE: Can lookup only available positions
+        while iter < MAX_TRIES:
+            xcoord = randint(0, self.grid.width - 1)
+            ycoord = randint(0, self.grid.height - 1)
+            if self.grid.element_at(xcoord, ycoord) == GridObject.EMPTY:
+                self.grid.set_element_at(xcoord, ycoord, GridObject.APPLE)
+                return True
+            iter += 1
+
+        return False
+
+    def split_grid_half(self):
+        for i in range(self.grid.height):
+            self.grid.set_element_at(i, self.grid.width // 2, GridObject.WALL)
+
+    def result(self):
+        return self.grid
+        self.reset()
 
 
-if __name__ == "__main__":
+def __test_serialization():
     a = Grid()
     a.fill_borders()
     a[(2, 2)] = GridObject.SNAKE_1
@@ -72,3 +114,13 @@ if __name__ == "__main__":
     b.deserialize(a.serialize())
 
     assert str(a) == str(b)
+
+
+if __name__ == "__main__":
+    gb = GridBuilder()
+    gb.setup_players()
+    gb.fill_borders()
+    gb.split_grid_half()
+    gb.gen_random_apple()
+
+    print(gb.result())
