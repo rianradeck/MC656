@@ -26,18 +26,18 @@ class Grid:
     def deserialize(self, byte_str):
         self.data = list(map(GridObject, byte_str))
 
-    def element_at(self, row, column):
+    def assert_grid_boundaries(self, row, column):
         assert 0 <= row
         assert 0 <= column
         assert row < self.height
         assert column < self.width
+
+    def element_at(self, row, column):
+        self.assert_grid_boundaries(row, column)
         return self.data[row * self.width + column]
 
     def set_element_at(self, row, column, value):
-        assert 0 <= row
-        assert 0 <= column
-        assert row < self.height
-        assert column < self.width
+        self.assert_grid_boundaries(row, column)
         self.data[row * self.width + column] = value
 
     def __str__(self):
