@@ -5,9 +5,12 @@ import enum
 class GridObject(enum.Enum):
     EMPTY = enum.auto()
     WALL = enum.auto()
+    APPLE = enum.auto()
     SNAKE_1 = enum.auto()
     SNAKE_2 = enum.auto()
-    APPLE = enum.auto()
+
+    def snake_from_index(idx):
+        return GridObject(GridObject.SNAKE_1.value + idx)
 
 
 class Grid:
