@@ -3,6 +3,15 @@ import pytest
 from common.grid import Grid, GridBuilder, GridObject
 
 
+def all_empty():
+    grid = Grid()
+    for i in range(grid.height):
+        for j in range(grid.width):
+            if grid.element_at(i, j) != GridObject.EMPTY:
+                return False
+    return True
+
+
 def test_serialize():
     gb = GridBuilder()
     gb.fill_borders()
@@ -22,3 +31,17 @@ def test_grid():
 
     with pytest.raises(AssertionError):
         grid.set_element_at(grid.height, grid.width, GridObject.APPLE)
+
+
+def test_grid_limits():
+    grid = Grid()
+
+    for i in range(grid.height):
+        with pytest.raises(AssertionError):
+            grid.set_element_at(i, -1, GridObject.SNAKE_1)
+
+    for j in range(grid.width):
+        with pytest.raises(AssertionError):
+            grid.set_element_at(-1, j, GridObject.SNAKE_1)
+
+    assert all_empty()
