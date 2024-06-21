@@ -1,11 +1,12 @@
 import pytest
 
-from common.grid import Grid, GridObject
+from common.grid import Grid, GridBuilder, GridObject
 
 
 def test_serialize():
-    grid_a = Grid()
-    grid_a.fill_borders()
+    gb = GridBuilder()
+    gb.fill_borders()
+    grid_a = gb.result()
     grid_b = Grid()
 
     grid_b.deserialize(grid_a.serialize())
