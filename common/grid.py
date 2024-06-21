@@ -6,14 +6,17 @@ from random import randint
 class GridObject(enum.Enum):
     EMPTY = enum.auto()
     WALL = enum.auto()
+    APPLE = enum.auto()
     SNAKE_1 = enum.auto()
     SNAKE_2 = enum.auto()
-    APPLE = enum.auto()
+
+    def snake_from_index(idx):
+        return GridObject(GridObject.SNAKE_1.value + idx)
 
 
 class Grid:
     def __init__(self):
-        self.width = 10
+        self.width = 15
         self.height = 10
         self.data = [GridObject.EMPTY] * (self.width * self.height)
 
