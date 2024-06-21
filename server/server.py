@@ -1,31 +1,12 @@
 import argparse
-import enum
+import asyncio
 import socket
 import time
 
 import common.grid
 import common.network
-
-
-class PacketType(enum.Enum):
-    PLAYER_ID = enum.auto()
-    GRID_STATE = enum.auto()
-    PLAYER_MOVE = enum.auto()
-
-
-class Direction(enum.Enum):
-    UP = enum.auto()
-    RIGHT = enum.auto()
-    DOWN = enum.auto()
-    LEFT = enum.auto()
-
-    def get_displacement(self):
-        return {
-            Direction.UP: (-1, 0),
-            Direction.DOWN: (1, 0),
-            Direction.LEFT: (0, -1),
-            Direction.RIGHT: (0, 1),
-        }[self]
+from common.direction import Direction
+from common.packet import PacketType
 
 
 def move_snake(direction, grid, snake):
@@ -64,12 +45,7 @@ def wait_connections(args, NUM_PLAYERS):
     return player_connections
 
 
-if __name__ == "__main__":
-    arg_parser = argparse.ArgumentParser(description="server executable")
-    arg_parser.add_argument("--port", default=25565)
-    args = arg_parser.parse_args()
-
-    NUM_PLAYERS = 2
+async def main(args, NUM_PLAYERS):
     player_connections = wait_connections(args, NUM_PLAYERS)
     print("Both players connected. Starting match.")
 
@@ -121,5 +97,14 @@ if __name__ == "__main__":
         deltaTime = curFrameTime - lastFrameTime
         sleeptime = 1 / TARGET_UPS - deltaTime / 1000000000
         if sleeptime > 0:
-            time.sleep(sleeptime)
+            await asyncio.sleep(sleeptime)
         lastFrameTime = curFrameTime
+
+
+if __name__ == "__main__":
+    arg_parser = argparse.ArgumentParser(description="server executable")
+    arg_parser.add_argument("--port", default=25565)
+    args = arg_parser.parse_args()
+
+    NUM_PLAYERS = 2
+    asyncio.run(main(args, NUM_PLAYERS))
