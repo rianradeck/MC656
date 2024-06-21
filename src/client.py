@@ -4,8 +4,8 @@ import socket
 import time
 
 import pygame
-import ui
 
+import client.ui as ui
 import common.grid
 import common.network
 from common.direction import Direction
