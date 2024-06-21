@@ -39,9 +39,15 @@ def test_grid_limits():
     for i in range(grid.height):
         with pytest.raises(AssertionError):
             grid.set_element_at(i, -1, GridObject.SNAKE_1)
+        grid.set_element_at(i, 0, GridObject.SNAKE_1)
+        assert grid.element_at(i, 0) == GridObject.SNAKE_1
+        grid.set_element_at(i, 0, GridObject.EMPTY)
 
     for j in range(grid.width):
         with pytest.raises(AssertionError):
             grid.set_element_at(-1, j, GridObject.SNAKE_1)
+        grid.set_element_at(0, j, GridObject.SNAKE_1)
+        assert grid.element_at(0, j) == GridObject.SNAKE_1
+        grid.set_element_at(i, 0, GridObject.EMPTY)
 
     assert all_empty()
