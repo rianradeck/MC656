@@ -12,8 +12,8 @@ O jogo possui dois pontos de entrada, o servidor e o cliente. O cliente é um pr
 ## Arquitetura do projeto
 O estilo arquitetural adotado foi o cliente-servidor.
 
-| ![plot](./diagrama_de_componentes.png) |
-|:--:| 
+| ![plot](./resources/diagrama_de_componentes.png) |
+|:--:|
 | *Diagrama de Componentes C4* |
 
 Os componentes são descritos como a seguir:

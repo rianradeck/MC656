@@ -65,10 +65,14 @@ async def main(args, NUM_PLAYERS):
 
     for i in range(2):
         player_connections[i].send(
-            int.to_bytes(PacketType.PLAYER_ID.value) + int.to_bytes(i)
+            int.to_bytes(PacketType.PLAYER_ID.value, length=1, byteorder="big")
+            + int.to_bytes(i, length=1, byteorder="big")
         )
         player_connections[i].send(
-            int.to_bytes(PacketType.GRID_STATE.value) + grid.serialize()
+            int.to_bytes(
+                PacketType.GRID_STATE.value, length=1, byteorder="big"
+            )
+            + grid.serialize()
         )
 
     lastFrameTime = time.time_ns()
@@ -89,7 +93,11 @@ async def main(args, NUM_PLAYERS):
 
                     for j in range(2):
                         player_connections[j].send(
-                            int.to_bytes(PacketType.GRID_STATE.value)
+                            int.to_bytes(
+                                PacketType.GRID_STATE.value,
+                                length=1,
+                                byteorder="big",
+                            )
                             + grid.serialize()
                         )
 
