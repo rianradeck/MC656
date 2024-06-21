@@ -18,8 +18,10 @@ async def process_events(serverConnection, running):
             running = False
         elif event.type == pygame.KEYDOWN:
             send_move = lambda x: serverConnection.send(
-                int.to_bytes(PacketType.PLAYER_MOVE.value)
-                + int.to_bytes(x.value)
+                int.to_bytes(
+                    PacketType.PLAYER_MOVE.value, length=1, byteorder="big"
+                )
+                + int.to_bytes(x.value, length=1, byteorder="big")
             )
 
             if event.key in [pygame.K_LEFT, pygame.K_a]:

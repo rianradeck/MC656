@@ -1,6 +1,3 @@
-import socket
-
-
 class ByteStream:
     def __init__(self):
         self.buf = bytearray()
@@ -47,13 +44,15 @@ class NetworkConnection:
         self._process_recv()
 
     def send(self, data):
-        self.send_queue.push(int.to_bytes(len(data), 2))
+        self.send_queue.push(
+            int.to_bytes(len(data), length=2, byteorder="big")
+        )
         self.send_queue.push(data)
 
     def recv(self):
         if len(self.recv_queue) < 2:
             return None
-        size = int.from_bytes(self.recv_queue.peek(2))
+        size = int.from_bytes(self.recv_queue.peek(2), byteorder="big")
         if len(self.recv_queue) < 2 + size:
             return None
         self.recv_queue.pop(2)
