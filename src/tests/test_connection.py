@@ -6,7 +6,7 @@ import pytest
 
 from client.network import ClientConnection
 from server.network import ServerConnection
-from utils.network import ip_address_is_valid
+from utils.utils import ip_address_is_valid
 
 
 def run_server():
