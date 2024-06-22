@@ -10,7 +10,6 @@ import common.grid
 import common.network
 from common.direction import Direction
 from common.packet import PacketType
-from utils.network import ip_address_is_valid
 
 
 async def process_events(serverConnection, running):
@@ -85,7 +84,5 @@ if __name__ == "__main__":
     arg_parser.add_argument("--port", default=25565)
     arg_parser.add_argument("--ip", default="127.0.0.1")
     args = arg_parser.parse_args()
-
-    assert ip_address_is_valid(args.ip)
 
     asyncio.run(main(args))
