@@ -67,7 +67,7 @@ async def init_players(grid, snakes, player_connections, NUM_PLAYERS):
 
 
 async def tick(snakes, grid, last_move, player_connections, NUM_PLAYERS):
-    running = True
+    game_over = False
     for i in range(NUM_PLAYERS):
         direction = last_move[i]
 
@@ -75,7 +75,7 @@ async def tick(snakes, grid, last_move, player_connections, NUM_PLAYERS):
         snakes[i] = move_snake(direction, grid, snakes[i])
         if last_snake == snakes[i]:
             print(f"Player {i} didnt move. Game over")
-            running = False
+            game_over = True
 
     for j in range(NUM_PLAYERS):
         player_connections[j].send(
@@ -86,7 +86,14 @@ async def tick(snakes, grid, last_move, player_connections, NUM_PLAYERS):
             )
             + grid.serialize()
         )
-    return running
+        if game_over:
+            player_connections[j].send(
+                int.to_bytes(
+                    PacketType.GAME_OVER.value, length=1, byteorder="big"
+                )
+            )
+
+    return game_over
 
 
 async def process_players(NUM_PLAYERS, player_connections, last_move):
@@ -124,11 +131,12 @@ async def main(args, NUM_PLAYERS):
     last_move = [Direction.UP, Direction.DOWN]
 
     running = True
+    game_over = False
     while running:
         await process_players(NUM_PLAYERS, player_connections, last_move)
 
-        if timer >= 1 / args.tickrate:
-            running = await tick(
+        if timer >= 1 / args.tickrate and not game_over:
+            game_over = await tick(
                 snakes, grid, last_move, player_connections, NUM_PLAYERS
             )
             timer = 0

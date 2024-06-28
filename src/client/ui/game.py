@@ -81,3 +81,13 @@ class Game:
                 send_move(Direction.UP)
             elif event.key in [pygame.K_DOWN, pygame.K_s]:
                 send_move(Direction.DOWN)
+
+    def draw_game_over(self, screen):
+        game_over_img = self.font.render("Game over", True, "black")
+
+        width, height = screen.get_size()
+
+        x_offset = (width - game_over_img.get_width()) / 2
+        y_offset = (height - game_over_img.get_height()) / 2
+
+        screen.blit(game_over_img, (x_offset, y_offset))

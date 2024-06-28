@@ -22,6 +22,7 @@ game = Game(font)
 grid = Grid()
 ip, nick = None, None
 server_connection = None
+game_over = False
 
 
 async def connect_to_server(ip, port):
@@ -50,7 +51,7 @@ async def handle_event(event):
 
 
 def draw_screen(screen):
-    global screen_state, grid
+    global screen_state, grid, game_over
 
     match screen_state:
         case "lobby":
@@ -58,6 +59,8 @@ def draw_screen(screen):
         case "game":
             game.draw_stats(screen)
             game.draw_grid(screen, grid)
+            if game_over:
+                game.draw_game_over(screen)
             server_connection.process()
             packet = server_connection.recv()
             if packet is not None:
@@ -67,6 +70,9 @@ def draw_screen(screen):
                 elif type == PacketType.GRID_STATE:
                     grid.deserialize(packet[1:])
                     print(type)
+                elif type == PacketType.GAME_OVER:
+                    print("Game ended")
+                    game_over = True
 
 
 async def change_state(new_state, args):
