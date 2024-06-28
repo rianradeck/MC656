@@ -1,3 +1,4 @@
+import asyncio
 import socket
 import uuid
 from pathlib import Path
@@ -25,7 +26,9 @@ server_connection = None
 
 async def connect_to_server(ip, port):
     conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    conn.connect((ip, port))
+    loop = asyncio.get_event_loop()
+
+    await loop.sock_connect(conn, (ip, port))
     conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
     conn.setblocking(False)
 
