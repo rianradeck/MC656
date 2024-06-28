@@ -1,10 +1,14 @@
+import socket
+import uuid
 from pathlib import Path
 
 import pygame
 
+import common.network
 from client.ui.game import Game
 from client.ui.lobby import Lobby
 from common.grid import Grid
+from common.packet import PacketType
 
 pygame.font.init()
 font = pygame.font.Font(
@@ -13,36 +17,65 @@ font = pygame.font.Font(
 screen_state = "lobby"
 
 lobby = Lobby(font)
+game = Game(font)
+grid = Grid()
+ip, nick = None, None
+server_connection = None
 
 
-def handle_event(event):
-    global screen_state
+async def connect_to_server(ip, port):
+    conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    conn.connect((ip, port))
+    conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+    conn.setblocking(False)
+
+    serverConnection = common.network.NetworkConnection(conn)
+    return serverConnection
+
+
+async def handle_event(event):
+    global screen_state, ip, nick, server_connection
 
     match screen_state:
         case "lobby":
-            lobby.handle_lobby_event(event)
+            args = lobby.handle_lobby_event(event)
+            if args:
+                await change_state("game", args)
+
         case "game":
-            game.handle_game_event(event)
+            game.handle_game_event(event, server_connection)
 
 
 def draw_screen(screen):
-    global screen_state
+    global screen_state, grid
 
     match screen_state:
         case "lobby":
             lobby.draw_lobby(screen)
         case "game":
-            game.draw_stats(screen, font)
-            game.draw_grid(screen, Grid())
+            game.draw_stats(screen)
+            game.draw_grid(screen, grid)
+            server_connection.process()
+            packet = server_connection.recv()
+            if packet is not None:
+                type = PacketType(packet[0])
+                if type == PacketType.PLAYER_ID:
+                    print(type, packet)
+                elif type == PacketType.GRID_STATE:
+                    grid.deserialize(packet[1:])
+                    print(type)
 
 
-def change_state(new_state):
-    global screen_state
+async def change_state(new_state, args):
+    global screen_state, ip, nick, server_connection
 
-    if screen_state == "lobby" and new_state == "game":
-        global game
-        game = Game(font)
     screen_state = new_state
+
+    nick, ip = args
+    if ip == "":
+        nick = uuid.uuid4().hex[:8]
+        ip = "127.0.0.1"
+    server_connection = await connect_to_server(ip, 25565)
 
 
 if __name__ == "__main__":

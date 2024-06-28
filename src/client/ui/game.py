@@ -1,6 +1,8 @@
 import pygame
 
+from common.direction import Direction
 from common.grid import GridObject
+from common.packet import PacketType
 
 
 class Game:
@@ -13,7 +15,9 @@ class Game:
         screen.blit(font_shadow, (100 - 2, 100 + 2))
         screen.blit(font_img, (100, 100))
 
-    def draw_grid(screen, grid, margin=10, cell_width=50, cell_height=50):
+    def draw_grid(
+        self, screen, grid, margin=10, cell_width=50, cell_height=50
+    ):
         background_border = 10
 
         width, height = screen.get_size()
@@ -59,3 +63,21 @@ class Game:
                         x_position, y_position, cell_width, cell_height
                     ),
                 )
+
+    def handle_game_event(self, event, serverConnection):
+        if event.type == pygame.KEYDOWN:
+            send_move = lambda x: serverConnection.send(
+                int.to_bytes(
+                    PacketType.PLAYER_MOVE.value, length=1, byteorder="big"
+                )
+                + int.to_bytes(x.value, length=1, byteorder="big")
+            )
+
+            if event.key in [pygame.K_LEFT, pygame.K_a]:
+                send_move(Direction.LEFT)
+            elif event.key in [pygame.K_RIGHT, pygame.K_d]:
+                send_move(Direction.RIGHT)
+            elif event.key in [pygame.K_UP, pygame.K_w]:
+                send_move(Direction.UP)
+            elif event.key in [pygame.K_DOWN, pygame.K_s]:
+                send_move(Direction.DOWN)

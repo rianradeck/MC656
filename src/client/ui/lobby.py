@@ -25,6 +25,7 @@ class Lobby:
                 print("Nickname:", self.ib_nickname.text)
                 print("IP:", self.ib_ip.text)
                 # Add action for play button
+                return self.ib_nickname.text, self.ib_ip.text
 
     def draw_lobby(self, screen):
         for box in self.input_boxes:
