@@ -38,7 +38,12 @@ async def process_events(serverConnection, running):
 
 async def main(args):
     conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    conn.connect((args.ip, args.port))
+
+    loop = asyncio.get_event_loop()
+
+    # conn.connect((args.ip, args.port))
+    await loop.sock_connect(conn, (args.ip, args.port))
+
     conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
     conn.setblocking(False)
 
