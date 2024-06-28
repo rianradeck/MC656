@@ -28,14 +28,17 @@ def move_snake(direction, grid, snake):
     return snake
 
 
-def wait_connections(args, NUM_PLAYERS):
+async def wait_connections(args, NUM_PLAYERS):
     listening_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     listening_socket.bind(("0.0.0.0", args.port))
     listening_socket.listen()
 
+    loop = asyncio.get_event_loop()
+
     player_connections = []
     for i in range(NUM_PLAYERS):
-        sock, addr = listening_socket.accept()
+        # sock, addr = listening_socket.accept()
+        sock, addr = await loop.sock_accept(listening_socket)
         print(f"Player {i} connected at {addr}")
         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         sock.setblocking(False)
@@ -45,20 +48,7 @@ def wait_connections(args, NUM_PLAYERS):
     return player_connections
 
 
-async def main(args, NUM_PLAYERS):
-    player_connections = wait_connections(args, NUM_PLAYERS)
-    print("Both players connected. Starting match.")
-
-    grid = common.grid.Grid()
-    # grid.fill_borders()
-
-    snakes = [
-        # player1_snake
-        [(3, 1), (4, 1), (5, 1)],
-        # player2_snake
-        [(6, 8), (5, 8), (4, 8)],
-    ]
-
+async def init_players(grid, snakes, player_connections, NUM_PLAYERS):
     for i in range(NUM_PLAYERS):
         for pos in snakes[i]:
             grid[pos] = common.grid.GridObject.snake_from_index(i)
@@ -75,35 +65,78 @@ async def main(args, NUM_PLAYERS):
             + grid.serialize()
         )
 
+
+async def tick(snakes, grid, last_move, player_connections, NUM_PLAYERS):
+    running = True
+    for i in range(NUM_PLAYERS):
+        direction = last_move[i]
+
+        last_snake = snakes[i].copy()
+        snakes[i] = move_snake(direction, grid, snakes[i])
+        if last_snake == snakes[i]:
+            print(f"Player {i} didnt move. Game over")
+            running = False
+
+    for j in range(NUM_PLAYERS):
+        player_connections[j].send(
+            int.to_bytes(
+                PacketType.GRID_STATE.value,
+                length=1,
+                byteorder="big",
+            )
+            + grid.serialize()
+        )
+    return running
+
+
+async def process_players(NUM_PLAYERS, player_connections, last_move):
+    for i in range(NUM_PLAYERS):
+        player_connections[i].process()
+
+        packet = player_connections[i].recv()
+        if packet is not None:
+            type = PacketType(packet[0])
+            if type == PacketType.PLAYER_MOVE:
+                direction = Direction(packet[1])
+                last_move[i] = direction
+
+
+async def main(args, NUM_PLAYERS):
+    player_connections = await wait_connections(args, NUM_PLAYERS)
+    print("Both players connected. Starting match.")
+
+    grid = common.grid.Grid()
+    # grid.fill_borders()
+
+    snakes = [
+        # player1_snake
+        [(3, 1), (4, 1), (5, 1)],
+        # player2_snake
+        [(6, 8), (5, 8), (4, 8)],
+    ]
+
+    await init_players(grid, snakes, player_connections, NUM_PLAYERS)
+
     lastFrameTime = time.time_ns()
     TARGET_UPS = 60
 
+    timer = 0
+    last_move = [Direction.UP, Direction.DOWN]
+
     running = True
     while running:
-        for i in range(NUM_PLAYERS):
-            player_connections[i].process()
+        await process_players(NUM_PLAYERS, player_connections, last_move)
 
-            packet = player_connections[i].recv()
-            if packet is not None:
-                type = PacketType(packet[0])
-                if type == PacketType.PLAYER_MOVE:
-                    direction = Direction(packet[1])
-
-                    snakes[i] = move_snake(direction, grid, snakes[i])
-
-                    for j in range(2):
-                        player_connections[j].send(
-                            int.to_bytes(
-                                PacketType.GRID_STATE.value,
-                                length=1,
-                                byteorder="big",
-                            )
-                            + grid.serialize()
-                        )
+        if timer >= 1 / args.tickrate:
+            running = await tick(
+                snakes, grid, last_move, player_connections, NUM_PLAYERS
+            )
+            timer = 0
 
         curFrameTime = time.time_ns()
         deltaTime = curFrameTime - lastFrameTime
-        sleeptime = 1 / TARGET_UPS - deltaTime / 1000000000
+        timer += deltaTime / 1e9
+        sleeptime = 1 / TARGET_UPS - deltaTime / 1e9
         if sleeptime > 0:
             await asyncio.sleep(sleeptime)
         lastFrameTime = curFrameTime
@@ -112,6 +145,7 @@ async def main(args, NUM_PLAYERS):
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser(description="server executable")
     arg_parser.add_argument("--port", default=25565)
+    arg_parser.add_argument("--tickrate", default=1)
     args = arg_parser.parse_args()
 
     NUM_PLAYERS = 2
