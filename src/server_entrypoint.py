@@ -24,6 +24,10 @@ def move_snake(direction, grid, snake):
         grid[snake[-1]] = common.grid.GridObject.EMPTY
         snake = [new_head] + snake[:-1]
         grid[new_head] = temp
+    elif grid[new_head] == common.grid.GridObject.APPLE:
+        temp = grid[snake[0]]
+        snake = [new_head] + snake
+        grid[new_head] = temp
 
     return snake
 
@@ -128,7 +132,10 @@ async def main(args, NUM_PLAYERS):
     TARGET_UPS = 60
 
     timer = 0
+    apple_timer = 0
     last_move = [Direction.UP, Direction.DOWN]
+
+    APPLE_TIME = 5
 
     running = True
     game_over = False
@@ -141,9 +148,14 @@ async def main(args, NUM_PLAYERS):
             )
             timer = 0
 
+        if apple_timer >= APPLE_TIME and not game_over:
+            grid.gen_random_apple()
+            apple_timer = 0
+
         curFrameTime = time.time_ns()
         deltaTime = curFrameTime - lastFrameTime
         timer += deltaTime / 1e9
+        apple_timer += deltaTime / 1e9
         sleeptime = 1 / TARGET_UPS - deltaTime / 1e9
         if sleeptime > 0:
             await asyncio.sleep(sleeptime)

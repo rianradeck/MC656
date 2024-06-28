@@ -58,6 +58,21 @@ class Grid:
     def __setitem__(self, key, value):
         self.set_element_at(*key, value)
 
+    def gen_random_apple(self):
+        MAX_TRIES = 10
+        iter = 0
+
+        # OPTIMIZE: Can lookup only available positions
+        while iter < MAX_TRIES:
+            xcoord = randint(0, self.width - 1)
+            ycoord = randint(0, self.height - 1)
+            if self.element_at(ycoord, xcoord) == GridObject.EMPTY:
+                self.set_element_at(ycoord, xcoord, GridObject.APPLE)
+                return True
+            iter += 1
+
+        return False
+
 
 class GridBuilder:
     def __init__(self):
@@ -85,19 +100,7 @@ class GridBuilder:
             self.grid[pos] = GridObject.SNAKE_2
 
     def gen_random_apple(self):
-        MAX_TRIES = 10
-        iter = 0
-
-        # OPTIMIZE: Can lookup only available positions
-        while iter < MAX_TRIES:
-            xcoord = randint(0, self.grid.width - 1)
-            ycoord = randint(0, self.grid.height - 1)
-            if self.grid.element_at(xcoord, ycoord) == GridObject.EMPTY:
-                self.grid.set_element_at(xcoord, ycoord, GridObject.APPLE)
-                return True
-            iter += 1
-
-        return False
+        self.grid.gen_random_apple()
 
     def split_grid_half(self):
         for i in range(self.grid.height):
