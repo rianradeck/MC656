@@ -2,10 +2,11 @@ import argparse
 import asyncio
 import socket
 import time
+from pathlib import Path
 
 import pygame
 
-import client.ui as ui
+import client.main
 import common.grid
 import common.network
 from common.direction import Direction
@@ -16,59 +17,70 @@ async def process_events(serverConnection, running):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        elif event.type == pygame.KEYDOWN:
-            send_move = lambda x: serverConnection.send(
-                int.to_bytes(
-                    PacketType.PLAYER_MOVE.value, length=1, byteorder="big"
-                )
-                + int.to_bytes(x.value, length=1, byteorder="big")
-            )
 
-            if event.key in [pygame.K_LEFT, pygame.K_a]:
-                send_move(Direction.LEFT)
-            elif event.key in [pygame.K_RIGHT, pygame.K_d]:
-                send_move(Direction.RIGHT)
-            elif event.key in [pygame.K_UP, pygame.K_w]:
-                send_move(Direction.UP)
-            elif event.key in [pygame.K_DOWN, pygame.K_s]:
-                send_move(Direction.DOWN)
+        client.main.handle_event(event)
+
+        # elif event.type == pygame.KEYDOWN:
+
+        # send_move = lambda x: serverConnection.send(
+        #     int.to_bytes(
+        #         PacketType.PLAYER_MOVE.value, length=1, byteorder="big"
+        #     )
+        #     + int.to_bytes(x.value, length=1, byteorder="big")
+        # )
+
+        # if event.key in [pygame.K_LEFT, pygame.K_a]:
+        #     send_move(Direction.LEFT)
+        # elif event.key in [pygame.K_RIGHT, pygame.K_d]:
+        #     send_move(Direction.RIGHT)
+        # elif event.key in [pygame.K_UP, pygame.K_w]:
+        #     send_move(Direction.UP)
+        # elif event.key in [pygame.K_DOWN, pygame.K_s]:
+        #     send_move(Direction.DOWN)
     return running
 
 
-async def main(args):
+async def connect_to_server(ip, port):
     conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    conn.connect((args.ip, args.port))
+    conn.connect((ip, port))
     conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
     conn.setblocking(False)
 
     serverConnection = common.network.NetworkConnection(conn)
+    return serverConnection
+
+
+async def main(args):
+    # serverConnection = await connect_to_server(args.ip, args.port)
+    serverConnection = None
 
     running = True
 
     lastFrameTime = time.time_ns()
     TARGET_UPS = 20
 
-    grid = common.grid.Grid()
+    # grid = common.grid.Grid()
 
     pygame.init()
     screen = pygame.display.set_mode((1280, 720))
+    pygame.display.set_caption("Cobrinha")
     # https://gameprogrammingpatterns.com/game-loop.html
     while running:
-        serverConnection.process()
+        # serverConnection.process()
 
         running = await process_events(serverConnection, running)
 
-        packet = serverConnection.recv()
-        if packet is not None:
-            type = PacketType(packet[0])
-            if type == PacketType.PLAYER_ID:
-                print(type, packet)
-            elif type == PacketType.GRID_STATE:
-                grid.deserialize(packet[1:])
-                print(type)
-
-        screen.fill("deepskyblue")
-        ui.draw_grid(screen, grid)
+        # packet = serverConnection.recv()
+        # if packet is not None:
+        #     type = PacketType(packet[0])
+        #     if type == PacketType.PLAYER_ID:
+        #         print(type, packet)
+        #     elif type == PacketType.GRID_STATE:
+        #         grid.deserialize(packet[1:])
+        #         print(type)
+        client.main.draw_screen(screen)
+        # screen.fill("deepskyblue")
+        # ui.draw_grid(screen, grid)
         pygame.display.flip()
 
         curFrameTime = time.time_ns()
